@@ -1,0 +1,35 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+mailalert.db
+*.db
+node_modules/
+dist/
+.DS_Store
+npm-debug.log*
+
+# WhatsApp Web.js session files
+.wwebjs_auth/
+whatsapp-session-data/
+session.json
+
+# Log files
+*.log
+backend.log
+backend.err.log
+frontend.log
+frontend.err.log
+cloudflared_*.log
+
+# Local database journal files
+*.db-shm
+*.db-wal
+
+# Browser / WhatsApp local session caches
+sessions/
+whatsapp-gateway/sessions/
+whatsapp-gateway/.wwebjs_cache/
+
+# Local environment files
+.env
