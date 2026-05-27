@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional
 
 from sqlalchemy import Boolean, DateTime, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -30,11 +30,11 @@ class User(Base):
     user_mode: Mapped[str] = mapped_column(String(50), default="student") # student or professional
     career_profile: Mapped[str] = mapped_column(String(255), default="AIML, Full Stack, Software Engineering")
     telegram_username: Mapped[str] = mapped_column(String(100), default="")
-    opportunities_tracked: Mapped[int] = mapped_column(String(10), default="0")
-    applications_submitted: Mapped[int] = mapped_column(String(10), default="0")
-    interviews_scheduled: Mapped[int] = mapped_column(String(10), default="0")
-    responsiveness_score: Mapped[int] = mapped_column(String(3), default="92")
-    spam_cleaned_count: Mapped[int] = mapped_column(String(10), default="0")
+    opportunities_tracked: Mapped[int] = mapped_column(Integer, default=0)
+    applications_submitted: Mapped[int] = mapped_column(Integer, default=0)
+    interviews_scheduled: Mapped[int] = mapped_column(Integer, default=0)
+    responsiveness_score: Mapped[int] = mapped_column(Integer, default=92)
+    spam_cleaned_count: Mapped[int] = mapped_column(Integer, default=0)
 
     # Extra profile fields
     interests: Mapped[str] = mapped_column(String(500), default="")
