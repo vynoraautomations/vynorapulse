@@ -234,30 +234,12 @@ async def connect_whatsapp(
     try:
         gateway_status = await _fetch_gateway_status()
         if gateway_status.get("ready") or gateway_status.get("status") == "connected":
-            session = (
-                db.query(WhatsAppSession)
-                .filter(WhatsAppSession.session_id == f"user_{current_user.id}")
-                .first()
-            )
-            if not session:
-                session = WhatsAppSession(
-                    session_id=f"user_{current_user.id}",
-                    status="connected",
-                )
-                db.add(session)
-
-            session.status = "connected"
-            session.qr_code = ""
-            current_user.is_whatsapp_connected = True
-            current_user.whatsapp_connection_status = "connected"
-            db.commit()
-            db.refresh(session)
-            return {
-                "status": "connected",
-                "qr_code": None,
-                "qrCode": None,
-                "message": "WhatsApp is already connected.",
-            }
+            try:
+                await _reset_gateway_session()
+                await asyncio.sleep(2)
+                gateway_status = await _fetch_gateway_status()
+            except HTTPException:
+                pass
 
         qr_code = None
         if gateway_status.get("has_qr") or gateway_status.get("status") == "scanning":
