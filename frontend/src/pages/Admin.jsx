@@ -136,15 +136,15 @@ export default function Admin() {
         return;
       }
       setQrLoading(true);
-      const res = await apiRequest("/api/whatsapp/connect", { method: "POST" });
+      const res = await apiRequest("/api/admin/whatsapp/connect", { method: "POST" });
       setWhatsappStatus(res);
       setShowQRModal(true);
       showNotice("📱 Scan the QR code with WhatsApp on your phone to connect.");
       // Poll for connection status every 3 seconds
       const pollInterval = setInterval(async () => {
         try {
-          const statusRes = await apiRequest("/api/whatsapp/connection-status", { method: "GET" });
-          if (statusRes.connected) {
+          const statusRes = await apiRequest("/api/admin/whatsapp/status", { method: "GET" });
+          if (statusRes.ready || statusRes.status === "connected") {
             setWhatsappStatus(statusRes);
             setShowQRModal(false);
             showNotice("✅ WhatsApp connected successfully!");

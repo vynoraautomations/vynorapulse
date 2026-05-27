@@ -1,3 +1,5 @@
+import asyncio
+import time
 from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -311,4 +313,133 @@ async def get_admin_whatsapp_status(admin: User = Depends(check_admin)):
             "qrCode": None,
             "error": str(e),
         }
+
+
+@router.post("/whatsapp/connect")
+async def admin_connect_whatsapp(admin: User = Depends(check_admin)):
+    """Admin endpoint to initiate WhatsApp connection and get a fresh QR code"""
+    settings = get_settings()
+    
+    async def _reset_gateway_session() -> None:
+        async with httpx.AsyncClient(trust_env=False) as async_client:
+            response = await async_client.post(
+                f"{settings.wa_web_service_url}/api/whatsapp/reset",
+                timeout=15,
+            )
+            if response.status_code != 200:
+                raise HTTPException(
+                    status_code=503,
+                    detail=f"Unable to reset WhatsApp gateway: {response.text}",
+                )
+    
+    async def _fetch_gateway_status() -> dict:
+        try:
+            async with httpx.AsyncClient(trust_env=False) as async_client:
+                response = await async_client.get(
+                    f"{settings.wa_web_service_url}/api/whatsapp/status",
+                    timeout=5,
+                )
+                if response.status_code != 200:
+                    return {
+                        "status": "offline",
+                        "ready": False,
+                        "has_qr": False,
+                        "error": response.text,
+                    }
+
+                payload = response.json() or {}
+                ready = bool(payload.get("ready"))
+                has_qr = bool(payload.get("hasQR") or payload.get("status") == "qr_pending")
+                if ready:
+                    status = "connected"
+                elif has_qr:
+                    status = "scanning"
+                else:
+                    status = payload.get("status") or "disconnected"
+
+                return {
+                    "status": status,
+                    "ready": ready,
+                    "has_qr": has_qr,
+                    "error": payload.get("error"),
+                }
+        except Exception as exc:
+            return {
+                "status": "error",
+                "ready": False,
+                "has_qr": False,
+                "error": str(exc),
+            }
+    
+    async def _wait_for_gateway_qr(timeout_seconds: float = 20.0) -> str | None:
+        deadline = time.monotonic() + timeout_seconds
+        async with httpx.AsyncClient(trust_env=False) as async_client:
+            while time.monotonic() < deadline:
+                try:
+                    response = await async_client.get(
+                        f"{settings.wa_web_service_url}/api/whatsapp/status",
+                        timeout=5,
+                    )
+                    if response.status_code != 200:
+                        await asyncio.sleep(1)
+                        continue
+
+                    payload = response.json()
+                    if payload.get("hasQR"):
+                        qr_response = await async_client.get(
+                            f"{settings.wa_web_service_url}/api/whatsapp/qr",
+                            timeout=5,
+                        )
+                        if qr_response.status_code == 200:
+                            qr_payload = qr_response.json()
+                            qr_code = qr_payload.get("qr") or qr_payload.get("qrCode")
+                            if qr_code:
+                                return qr_code
+
+                    await asyncio.sleep(1)
+                except Exception:
+                    await asyncio.sleep(1)
+        return None
+    
+    try:
+        gateway_status = await _fetch_gateway_status()
+        if gateway_status.get("ready") or gateway_status.get("status") == "connected":
+            try:
+                await _reset_gateway_session()
+                await asyncio.sleep(2)
+                gateway_status = await _fetch_gateway_status()
+            except HTTPException:
+                pass
+
+        qr_code = None
+        if gateway_status.get("has_qr") or gateway_status.get("status") == "scanning":
+            async with httpx.AsyncClient(trust_env=False) as async_client:
+                qr_response = await async_client.get(
+                    f"{settings.wa_web_service_url}/api/whatsapp/qr",
+                    timeout=5,
+                )
+                if qr_response.status_code == 200:
+                    qr_payload = qr_response.json()
+                    qr_code = qr_payload.get("qr") or qr_payload.get("qrCode")
+
+        if not qr_code:
+            await _reset_gateway_session()
+            qr_code = await _wait_for_gateway_qr()
+
+        if not qr_code:
+            raise HTTPException(
+                status_code=503,
+                detail="Unable to generate a WhatsApp QR code. Please wait a few seconds and try again.",
+            )
+
+        return {
+            "status": "scanning",
+            "qr_code": qr_code,
+            "qrCode": qr_code,
+            "message": "Scan the QR code with WhatsApp on your phone",
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
