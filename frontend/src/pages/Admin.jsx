@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
-import { apiRequest } from "../services/api.js";
+import { API_BASE_URL, apiRequest } from "../services/api.js";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield, Users, CheckCircle2, XCircle, AlertTriangle, Ban,
@@ -509,7 +509,7 @@ export default function Admin() {
                           <div className="space-y-2">
                             <p className="text-xs font-mono text-slate-400 uppercase tracking-wider">Payment Screenshot</p>
                             <a
-                              href={`${import.meta.env.VITE_API_BASE_URL || "http://localhost:8000"}${u.payment_screenshot}`}
+                              href={`${API_BASE_URL}${u.payment_screenshot}`}
                               target="_blank"
                               rel="noreferrer"
                               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-mono transition-all"

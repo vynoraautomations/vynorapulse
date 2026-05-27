@@ -1,9 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
-import { apiRequest } from "./api.js";
+import { API_BASE_URL, apiRequest } from "./api.js";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://kpurpdeyxwngmubrjpkd.supabase.co";
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || "sb_publishable_v_5o21SMGLMTpt_MH3oBNw_e0_558Xn";
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 

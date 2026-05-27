@@ -1,4 +1,14 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+const LOCAL_API_BASE_URL = "http://127.0.0.1:8000";
+const PRODUCTION_API_BASE_URL = "https://vynora-pulse-api.onrender.com";
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  (typeof window !== "undefined" &&
+  window.location.hostname !== "localhost" &&
+  window.location.hostname !== "127.0.0.1"
+    ? PRODUCTION_API_BASE_URL
+    : LOCAL_API_BASE_URL);
+
 export { API_BASE_URL };
 
 function clearAuthTokens() {

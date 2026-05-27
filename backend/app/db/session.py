@@ -10,7 +10,7 @@ settings = get_settings()
 
 db_url = settings.database_url
 if db_url.startswith("postgresql://"):
-    db_url = db_url.replace("postgresql://", "postgresql+pg8000://", 1)
+    db_url = db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
 
 connect_args = {"check_same_thread": False, "timeout": 30} if db_url.startswith("sqlite") else {}
 engine = create_engine(db_url, connect_args=connect_args)

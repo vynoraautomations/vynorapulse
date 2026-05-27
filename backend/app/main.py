@@ -52,7 +52,6 @@ if settings.frontend_url not in allowed_origins:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
-    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1):\d+",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -178,4 +177,4 @@ async def shutdown_event():
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "service": "MailAlert"}
+    return {"status": "ok"}

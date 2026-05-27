@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
-import { apiRequest } from "../services/api.js";
+import { API_BASE_URL, apiRequest } from "../services/api.js";
 import RazorpayPayment from "../components/RazorpayPayment.jsx";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -179,7 +179,7 @@ export default function Subscription() {
       const formData = new FormData();
       formData.append("file", file);
       const token = localStorage.getItem("mailalert_token");
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || "http://localhost:8000"}/api/subscriptions/upload-payment?plan_id=${encodeURIComponent(selectedPlan?.id || user?.subscription_plan || "")}`, {
+      const response = await fetch(`${API_BASE_URL}/api/subscriptions/upload-payment?plan_id=${encodeURIComponent(selectedPlan?.id || user?.subscription_plan || "")}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
