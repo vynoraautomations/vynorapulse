@@ -5,7 +5,11 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "postinstall": "npx puppeteer browsers install chrome"
+    "build": "npx puppeteer browsers install chrome",
+    "postinstall": "npx puppeteer browsers install chrome 2>/dev/null || true"
+  },
+  "engines": {
+    "node": "18.x"
   },
   "dependencies": {
     "cors": "^2.8.5",

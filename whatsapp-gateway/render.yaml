@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: vynora-pulse-gateway
+    runtime: node
+    plan: starter
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/whatsapp/status
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: PUPPETEER_CACHE_DIR
+        value: /opt/render/.cache/puppeteer
