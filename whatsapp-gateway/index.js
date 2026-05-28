@@ -1,11 +1,68 @@
 const path = require('path');
 const fs = require('fs');
-const { execFile } = require('child_process');
+const { execFile, execSync } = require('child_process');
 const express = require('express');
 const cors = require('cors');
 const qrcode = require('qrcode');
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const { LoadUtils } = require('whatsapp-web.js/src/util/Injected/Utils');
+
+// Aggressive Chrome detection
+function findChromePath() {
+  const possiblePaths = [
+    '/usr/bin/chromium-browser',
+    '/usr/bin/chromium',
+    '/snap/bin/chromium',
+    '/usr/bin/google-chrome',
+    '/usr/bin/google-chrome-stable',
+    process.env.PUPPETEER_EXECUTABLE_PATH,
+  ];
+
+  for (const chromePath of possiblePaths) {
+    if (chromePath && fs.existsSync(chromePath)) {
+      console.log(`[Chrome Detection] ✓ Found Chrome at: ${chromePath}`);
+      return chromePath;
+    }
+  }
+
+  // Try to find via which command
+  try {
+    const found = execSync('which chromium-browser || which chromium || which google-chrome', { encoding: 'utf8' }).trim();
+    if (found && fs.existsSync(found)) {
+      console.log(`[Chrome Detection] ✓ Found Chrome via which: ${found}`);
+      return found;
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  console.warn('[Chrome Detection] ⚠ Chrome not found in standard locations');
+  return undefined;
+}
+
+// Use puppeteer-extra for better stealth mode
+let puppeteer;
+try {
+  puppeteer = require('puppeteer-extra');
+  const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+  puppeteer.use(StealthPlugin());
+  console.log('[whatsapp] Using puppeteer-extra with stealth plugin');
+} catch (e) {
+  console.log('[whatsapp] Fallback: Using regular puppeteer without stealth');
+  puppeteer = require('puppeteer');
+}
+
+// Set executable path from environment or detect
+let executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+if (!executablePath) {
+  executablePath = findChromePath();
+}
+
+if (executablePath) {
+  console.log(`[whatsapp] Configured Chrome executable: ${executablePath}`);
+} else {
+  console.warn('[whatsapp] ⚠ Chrome executable path not set. Puppeteer will attempt auto-discovery.');
+}
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -256,15 +313,18 @@ async function buildClient() {
     }),
     puppeteer: {
       headless: DEFAULT_HEADLESS,
+      executablePath: executablePath,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
         '--disable-accelerated-2d-canvas',
+        '--disable-gpu',
+        '--disable-software-rasterizer',
+        '--disable-extensions',
         '--no-first-run',
         '--no-zygote',
         '--single-process',
-        '--disable-gpu'
       ],
     },
   });
