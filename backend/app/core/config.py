@@ -93,11 +93,11 @@ class Settings(BaseSettings):
     twilio_auth_token: str = ""
     twilio_phone_number: str = ""
     whatsapp_phone_number: str = "+8106944811"
-    whatsapp_service_url: str = "http://localhost:3001"
+    whatsapp_service_url: str = os.getenv("WHATSAPP_SERVICE_URL", "http://localhost:3001")
     whatsapp_access_token: str = ""
     whatsapp_phone_number_id: str = ""
     whatsapp_verify_token: str = ""
-    wa_web_service_url: str = "http://localhost:3001"
+    wa_web_service_url: str = os.getenv("WA_WEB_SERVICE_URL", "http://localhost:3001")
 
     # Admin
     admin_email: str = "vynoraautomations@gmail.com"
