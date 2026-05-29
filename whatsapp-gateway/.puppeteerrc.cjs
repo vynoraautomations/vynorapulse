@@ -1,7 +1,19 @@
-const {join} = require('path');
+/**
+ * Puppeteer configuration for Render.com
+ * Uses system chromium-browser instead of downloading
+ */
 
 module.exports = {
-  // Download Chrome to a persistent location
-  cacheDirectory: join(__dirname, 'node_modules', '.puppeteer_browsers'),
-  skipChromeDownload: false,
+  // Skip Chromium download - we install via apt-get
+  skipDownload: true,
+  skipChromeDownload: true,
+  
+  // Use system chromium-browser installation
+  executablePath: '/usr/bin/chromium-browser',
+  
+  // Cache directory if needed
+  cacheDirectory: '/opt/render/.cache/puppeteer',
+  
+  // Additional options
+  chromePath: '/usr/bin/chromium-browser',
 };
